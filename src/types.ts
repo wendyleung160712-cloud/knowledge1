@@ -48,7 +48,7 @@ export interface WordProgress {
 }
 
 export interface ProgressState {
-  version: 2;
+  version: 3;
   day: DayPlan;
   unitFilter: 0 | 1 | 2 | 3 | 4;
   words: Record<string, WordProgress>;

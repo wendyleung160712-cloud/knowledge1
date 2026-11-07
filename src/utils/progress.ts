@@ -2,7 +2,8 @@ import type { DayPlan, ProgressState, TestGate, WordProgress } from '../types';
 import { TEST_GATES } from '../types';
 import { VOCAB } from '../data/vocab';
 
-/** v2: stricter learn/test gates (must hear / read / spell correctly). Migrates from v1. */
+/** v3: dictation + handwriting OCR. Migrates from v2/v1. */
+const KEY_V3 = 'gz3a_weekend_v3';
 const KEY_V2 = 'gz3a_weekend_v2';
 const KEY_V1 = 'gz3a_weekend_v1';
 
@@ -21,7 +22,7 @@ export function defaultProgress(): ProgressState {
   const words: Record<string, WordProgress> = {};
   for (const w of VOCAB) words[w.id] = emptyWord();
   return {
-    version: 2,
+    version: 3,
     day: 1,
     unitFilter: 0,
     words,
@@ -68,18 +69,10 @@ function hydrateFromParsed(parsed: {
 
 export function loadProgress(): ProgressState {
   try {
-    const v2 = localStorage.getItem(KEY_V2);
-    if (v2) {
-      const parsed = JSON.parse(v2) as ProgressState;
-      if (parsed?.version === 2) {
-        const base = hydrateFromParsed(parsed);
-        saveProgress(base);
-        return base;
-      }
-    }
-    const v1 = localStorage.getItem(KEY_V1);
-    if (v1) {
-      const parsed = JSON.parse(v1);
+    for (const key of [KEY_V3, KEY_V2, KEY_V1]) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
       const migrated = hydrateFromParsed(parsed);
       saveProgress(migrated);
       return migrated;
@@ -91,8 +84,8 @@ export function loadProgress(): ProgressState {
 }
 
 export function saveProgress(state: ProgressState): void {
-  const next = { ...state, version: 2 as const, updatedAt: Date.now() };
-  localStorage.setItem(KEY_V2, JSON.stringify(next));
+  const next = { ...state, version: 3 as const, updatedAt: Date.now() };
+  localStorage.setItem(KEY_V3, JSON.stringify(next));
 }
 
 export function isLearned(p: WordProgress | undefined): boolean {
